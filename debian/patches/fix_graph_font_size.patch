@@ -1,0 +1,299 @@
+Index: zabbix-2.0.5/frontends/php/include/classes/class.cchart.php
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/include/classes/class.cchart.php	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/frontends/php/include/classes/class.cchart.php	2013-02-13 14:41:09.000000000 +0100
+@@ -63,17 +63,19 @@
+ 	// PRE CONFIG:	ADD / SET / APPLY
+ 	/********************************************************************************************************/
+ 	public function updateShifts() {
++		$bigShiftAmount = $this->baseFontSize*12;
++		$smallShiftAmount = 25;
+ 		if ($this->yaxisleft == 1 && $this->yaxisright == 1) {
+-			$this->shiftXleft = 85;
+-			$this->shiftXright = 85;
++			$this->shiftXleft = $bigShiftAmount;
++			$this->shiftXright = $bigShiftAmount;
+ 		}
+ 		elseif ($this->yaxisleft == 1) {
+-			$this->shiftXleft = 85;
+-			$this->shiftXright = 30;
++			$this->shiftXleft = $bigShiftAmount;
++			$this->shiftXright = $smallShiftAmount;
+ 		}
+ 		elseif ($this->yaxisright == 1) {
+-			$this->shiftXleft = 30;
+-			$this->shiftXright = 85;
++			$this->shiftXleft = $smallShiftAmount;
++			$this->shiftXright = $bigShiftAmount;
+ 		}
+ 	}
+ 
+@@ -1234,11 +1236,11 @@
+ 			}
+ 
+ 			$str = zbx_date2str($date_format, $new_time);
+-			$dims = imageTextSize(7, 90, $str);
++			$dims = imageTextSize($this->baseFontSize-1, 90, $str);
+ 
+ 			imageText(
+ 				$this->im,
+-				7,
++				$this->baseFontSize-1,
+ 				90,
+ 				$this->shiftXleft + $new_pos+round($dims['width'] / 2),
+ 				$this->sizeY + $this->shiftY + $dims['height'] + 6,
+@@ -1250,10 +1252,10 @@
+ 		// first && last
+ 		// start
+ 		$str = zbx_date2str(_('d.m H:i'), $this->stime);
+-		$dims = imageTextSize(8, 90, $str);
++		$dims = imageTextSize($this->baseFontSize, 90, $str);
+ 		imageText(
+ 			$this->im,
+-			8,
++			$this->baseFontSize,
+ 			90,
+ 			$this->shiftXleft + round($dims['width'] / 2),
+ 			$this->sizeY + $this->shiftY + $dims['height'] + 6,
+@@ -1265,10 +1267,10 @@
+ 		$endtime = $this->to_time;
+ 
+ 		$str = zbx_date2str(_('d.m H:i'), $endtime);
+-		$dims = imageTextSize(8, 90, $str);
++		$dims = imageTextSize($this->baseFontSize, 90, $str);
+ 		imageText(
+ 			$this->im,
+-			8,
++			$this->baseFontSize,
+ 			90,
+ 			$this->sizeX + $this->shiftXleft + round($dims['width'] / 2),
+ 			$this->sizeY + $this->shiftY + $dims['height'] + 6,
+@@ -1294,11 +1296,11 @@
+ 		}
+ 
+ 		$str = zbx_date2str($date_format, $new_time);
+-		$dims = imageTextSize(8, 90, $str);
++		$dims = imageTextSize($this->baseFontSize, 90, $str);
+ 
+ 		imageText(
+ 			$this->im,
+-			8,
++			$this->baseFontSize,
+ 			90,
+ 			$this->shiftXleft + $new_pos + round($dims['width'] / 2),
+ 			$this->sizeY + $this->shiftY + $dims['height'] + 6,
+@@ -1350,7 +1352,7 @@
+ 		}
+ 
+ 		if (!empty($unitsLong)) {
+-			$dims = imageTextSize(9, 90, $unitsLong);
++			$dims = imageTextSize($this->baseFontSize+1, 90, $unitsLong);
+ 
+ 			$tmpY = $this->sizeY / 2 + $this->shiftY+$dims['height'] / 2;
+ 			if ($tmpY < $dims['height']) {
+@@ -1359,7 +1361,7 @@
+ 
+ 			imageText(
+ 				$this->im,
+-				9,
++				$this->baseFontSize+1,
+ 				90,
+ 				$dims['width'] + 8,
+ 				$tmpY,
+@@ -1383,7 +1385,7 @@
+ 			}
+ 			$str = convert_units($val, $units, ITEM_CONVERT_NO_UNITS);
+ 
+-			$dims = imageTextSize(8, 0, $str);
++			$dims = imageTextSize($this->baseFontSize, 0, $str);
+ 
+ 			// marker Y coordinate
+ 			$posY = $this->getYStepMarkerPosY(GRAPH_YAXIS_SIDE_LEFT, $i);
+@@ -1392,7 +1394,7 @@
+ 			if (($posY + $dims['height']) < $this->getYStepMarkerPosY(GRAPH_YAXIS_SIDE_LEFT, $i - 1)) {
+ 				imageText(
+ 					$this->im,
+-					8,
++					$this->baseFontSize,
+ 					0,
+ 					$this->shiftXleft - $dims['width'] - 9,
+ 					$posY,
+@@ -1403,10 +1405,10 @@
+ 		}
+ 
+ 		$str = convert_units($maxY, $units, ITEM_CONVERT_NO_UNITS);
+-		$dims = imageTextSize(8, 0, $str);
++		$dims = imageTextSize($this->baseFontSize, 0, $str);
+ 		imageText(
+ 			$this->im,
+-			8,
++			$this->baseFontSize,
+ 			0,
+ 			$this->shiftXleft - $dims['width'] - 9,
+ 			$this->shiftY  + 4,
+@@ -1460,7 +1462,7 @@
+ 		}
+ 
+ 		if (!empty($unitsLong)) {
+-			$dims = imageTextSize(9, 90, $unitsLong);
++			$dims = imageTextSize($this->baseFontSize+1, 90, $unitsLong);
+ 
+ 			$tmpY = $this->sizeY / 2 + $this->shiftY + $dims['height'] / 2;
+ 			if ($tmpY < $dims['height']) {
+@@ -1469,7 +1471,7 @@
+ 
+ 			imageText(
+ 				$this->im,
+-				9,
++				$this->baseFontSize+1,
+ 				90,
+ 				$this->fullSizeX - $dims['width'],
+ 				$tmpY,
+@@ -1495,14 +1497,14 @@
+ 			$str = convert_units($val, $units, ITEM_CONVERT_NO_UNITS);
+ 
+ 			// marker Y coordinate
+-			$dims = imageTextSize(8, 0, $str);
++			$dims = imageTextSize($this->baseFontSize, 0, $str);
+ 			$posY = $this->getYStepMarkerPosY(GRAPH_YAXIS_SIDE_RIGHT, $i);
+ 
+ 			// only draw the marker if it doesn't overlay the previous one
+ 			if (($posY + $dims['height']) <= $this->getYStepMarkerPosY(GRAPH_YAXIS_SIDE_RIGHT, $i - 1)) {
+ 				imageText(
+ 					$this->im,
+-					8,
++					$this->baseFontSize,
+ 					0,
+ 					$this->sizeX + $this->shiftXleft + 12,
+ 					$posY,
+@@ -1515,7 +1517,7 @@
+ 		$str = convert_units($maxY, $units, ITEM_CONVERT_NO_UNITS);
+ 		imageText(
+ 			$this->im,
+-			8,
++			$this->baseFontSize,
+ 			0,
+ 			$this->sizeX + $this->shiftXleft + 12,
+ 			$this->shiftY + 4,
+@@ -1727,21 +1729,21 @@
+ 	}
+ 
+ 	protected function drawLegend() {
+-		$leftXShift = 20;
++		$leftXShift = 16;
+ 		$units = array('left' => 0, 'right' => 0);
+ 
+ 		$legend = new CImageTextTable($this->im, $leftXShift + 10, $this->sizeY + $this->shiftY + $this->legendOffsetY);
+ 		$legend->color = $this->getColor($this->graphtheme['textcolor'], 0);
+ 		$legend->rowheight = 14;
+-		$legend->fontsize = 9;
++		$legend->fontsize = $this->baseFontSize + 1;
+ 
+ 		$row = array(
+ 			array('text' => ''),
+ 			array('text' => ''),
+-			array('text' => _('last'), 'align' => 1, 'fontsize' => 9),
+-			array('text' => _('min'), 'align' => 1, 'fontsize' => 9),
+-			array('text' => _('avg'), 'align' => 1, 'fontsize' => 9),
+-			array('text' => _('max'), 'align' => 1, 'fontsize' => 9)
++			array('text' => _('last'), 'align' => 1, 'fontsize' => $this->baseFontSize+1),
++			array('text' => _('min'), 'align' => 1, 'fontsize' => $this->baseFontSize+1),
++			array('text' => _('avg'), 'align' => 1, 'fontsize' => $this->baseFontSize+1),
++			array('text' => _('max'), 'align' => 1, 'fontsize' => $this->baseFontSize+1)
+ 		);
+ 
+ 		$legend->addRow($row);
+@@ -1834,8 +1836,8 @@
+ 			$this->sizeY + $this->shiftY + 14 * $colNum + $this->legendOffsetY
+ 		);
+ 		$legend->color = $this->getColor($this->graphtheme['textcolor'], 0);
+-		$legend->rowheight = 14;
+-		$legend->fontsize = 9;
++		$legend->rowheight = $this->baseFontSize + 1;
++		$legend->fontsize = $this->baseFontSize + 1;
+ 
+ 		// draw percentile
+ 		if ($this->type == GRAPH_TYPE_NORMAL) {
+@@ -2230,6 +2232,9 @@
+ 		$this->calcZero();
+ 		$this->calcPercentile();
+ 
++		// scale
++		if ($this->sizeX <= 500) $this->legendOffSetY = 75;
++
+ 		$this->fullSizeX = $this->sizeX + $this->shiftXleft + $this->shiftXright + 1;
+ 		$this->fullSizeY = $this->sizeY + $this->shiftY + $this->legendOffsetY;
+ 
+@@ -2361,8 +2366,8 @@
+ 
+ 		$str = sprintf('%0.2f', microtime(true) - $start_time);
+ 		$str = _s('Data from %1$s. Generated in %2$s sec.', $this->dataFrom, $str);
+-		$strSize = imageTextSize(6, 0, $str);
+-		imageText($this->im, 6, 0, $this->fullSizeX - $strSize['width'] - 5, $this->fullSizeY - 5, $this->getColor('Gray'), $str);
++		$strSize = imageTextSize($this->baseFontSize-2, 0, $str);
++		imageText($this->im, $this->baseFontSize-2, 0, $this->fullSizeX - $strSize['width'] - 5, $this->fullSizeY - 5, $this->getColor('Gray'), $str);
+ 
+ 		unset($this->items, $this->data);
+ 
+Index: zabbix-2.0.5/frontends/php/include/classes/class.cimagetexttable.php
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/include/classes/class.cimagetexttable.php	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/frontends/php/include/classes/class.cimagetexttable.php	2013-02-13 14:41:09.000000000 +0100
+@@ -80,7 +80,7 @@
+ 						$align = $col['width'] - $col['size']['width']; // right
+ 					}
+ 				}
+-				imageText($this->image, $col['fontsize'], 0, $rowx+$align, $coly, $text_color, $col['text']);
++				imageText($this->image, $this->fontsize, 0, $rowx+$align, $coly, $text_color, $col['text']);
+ 				$rowx += $col['width'] + 20;
+ 				$height = $col['height'];
+ 			}
+Index: zabbix-2.0.5/frontends/php/include/classes/class.cpie.php
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/include/classes/class.cpie.php	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/frontends/php/include/classes/class.cpie.php	2013-02-13 14:41:09.000000000 +0100
+@@ -373,7 +373,7 @@
+ 
+ 			imagetext(
+ 				$this->im,
+-				8,
++				$this->baseFontSize,
+ 				0,
+ 				$shiftX + 5,
+ 				$this->shiftY + 10 + 14 * $i + 10,
+@@ -700,10 +700,10 @@
+ 
+ 		$str = sprintf('%0.2f', microtime(true) - $start_time);
+ 		$str = _s('Data from %1$s. Generated in %2$s sec.', $this->dataFrom, $str);
+-		$strSize = imageTextSize(6, 0, $str);
++		$strSize = imageTextSize($this->baseFontSize-2, 0, $str);
+ 		imageText(
+ 			$this->im,
+-			6,
++			$this->baseFontSize-2,
+ 			0,
+ 			$this->fullSizeX - $strSize['width'] - 5,
+ 			$this->fullSizeY - 5,
+Index: zabbix-2.0.5/frontends/php/include/classes/class.cgraphdraw.php
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/include/classes/class.cgraphdraw.php	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/frontends/php/include/classes/class.cgraphdraw.php	2013-02-13 14:41:09.000000000 +0100
+@@ -54,6 +54,7 @@
+ 		$this->border = 1;
+ 		$this->num = 0;
+ 		$this->type = $type; // graph type
++		$this->baseFontSize=8;
+ 		$this->drawLegend = 1;
+ 		$this->axis_valuetype = array(); // overal items type (int/float)
+ 		$this->graphtheme = array(
+@@ -161,6 +162,10 @@
+ 			$value = 900;
+ 		}
+ 		$this->sizeX = $value;
++
++		// scale basefontsize
++		if($this->sizeX<=700) $this->baseFontSize -= round(((700 - $value) / 100 ), 0);
++		$this->baseFontSize = max($this->baseFontSize,4);
+ 	}
+ 
+ 	public function setHeight($value = null) {

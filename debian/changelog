@@ -1,0 +1,77 @@
+zabbix (2.0.5-3~tooptee12+1) precise; urgency=low
+
+  * Add patch to fix graph font scaling and graph title misalignment
+  * Add a patch to fix Screen header width to get Screen name on one line
+
+ -- Jean Baptiste Favre <ubuntu@jbfavre.org>  Wed, 13 Feb 2013 10:51:43 +0100
+
+zabbix (2.0.5-1~tooptee12+1) precise; urgency=low
+
+  * New upstream version 2.0.5
+
+ -- Jean Baptiste Favre <ubuntu@jbfavre.org>  Tue, 12 Feb 2013 14:06:48 +0100
+
+zabbix (2.0.4-1~tooptee12+1) precise; urgency=low
+
+  * New upstream version 2.0.4
+
+ -- Jean Baptiste Favre <ubuntu@jbfavre.org>  Sat, 08 Dec 2012 13:06:16 +0100
+
+zabbix (2.0.3-3~tooptee12+1) precise; urgency=low
+
+  * Includes zabbix_get into zabbix-proxy-* packages
+  * Add device name into zabbix-agent disk discovery (from Dotdeb)
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Sun, 14 Oct 2012 21:10:08 +0200
+
+zabbix (2.0.3-1~tooptee12+1) precise; urgency=low
+
+  * New upstream version 2.0.3
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Thu, 04 Oct 2012 09:30:27 +0200
+
+zabbix (2.0.2-3~tooptee12+1) precise; urgency=low
+
+  * Fix zabbix-frontend dependencies. Added php5-mysqlnd
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Thu, 27 Sep 2012 17:20:09 +0200
+
+zabbix (2.0.2-2~tooptee12+1) precise; urgency=low
+
+  * Fix examples, including 2.0 DB patch instead of 1.8
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Thu, 27 Sep 2012 16:33:06 +0200
+
+zabbix (2.0.2-1~tooptee12+1) precise; urgency=low
+
+  * New updstream version 2.0.2
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Thu, 27 Sep 2012 11:18:50 +0200
+
+zabbix (2.0.1-1~tooptee12+1) precise; urgency=low
+
+  * dotBuntu build for Ubuntu 12.04 Precise
+
+ -- Jean Baptiste Favre <jbfavre@dotbuntu.org>  Sun, 22 Jul 2012 20:28:22 +0200
+
+zabbix (2:2.0.1-2ppa1) precise; urgency=low
+
+  * New upstream release
+
+ -- Alexander Rudakov <piercemind@gmail.com>  Thu, 28 Jun 2012 14:29:01 +0400
+
+zabbix (2:2.0.0-4ppa1) precise; urgency=low
+
+  * Fixed agent template generation
+  * Fixed wrong frontend js prototype links
+  * Fixed initscripts dependency
+  * Disabled frontend installer
+  * Fixed debconf dependency
+
+ -- Alexander Rudakov <piercemind@gmail.com>  Tue, 23 May 2012 14:00:00 +0400
+
+zabbix (2:2.0.0-2ppa2) precise; urgency=low
+
+  * New upstream release
+
+ -- Alexander Rudakov <piercemind@gmail.com>  Tue, 22 May 2012 14:00:00 +0400

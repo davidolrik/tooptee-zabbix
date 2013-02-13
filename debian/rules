@@ -1,0 +1,480 @@
+#!/usr/bin/make -f
+## exports
+export DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+export DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+## exports
+
+## includes
+include /usr/share/quilt/quilt.make
+##
+
+## defines
+PKG_CLIENT = zabbix-agent
+PKG_SERVER_MYSQL = zabbix-server-mysql
+PKG_SERVER_PGSQL = zabbix-server-pgsql
+PKG_SERVER_SQLITE3 = zabbix-server-sqlite3
+PKG_FRONTEND = zabbix-frontend-php
+PKG_PROXY_MYSQL = zabbix-proxy-mysql
+PKG_PROXY_PGSQL = zabbix-proxy-pgsql
+PKG_PROXY_SQLITE3 = zabbix-proxy-sqlite3
+TMP_CLIENT = $(CURDIR)/debian/$(PKG_CLIENT)
+TMP_SERVER_MYSQL = $(CURDIR)/debian/$(PKG_SERVER_MYSQL)
+TMP_SERVER_PGSQL = $(CURDIR)/debian/$(PKG_SERVER_PGSQL)
+TMP_SERVER_SQLITE3 = $(CURDIR)/debian/$(PKG_SERVER_SQLITE3)
+TMP_FRONTEND = $(CURDIR)/debian/$(PKG_FRONTEND)
+TMP_PROXY_MYSQL = $(CURDIR)/debian/$(PKG_PROXY_MYSQL)
+TMP_PROXY_PGSQL = $(CURDIR)/debian/$(PKG_PROXY_PGSQL)
+TMP_PROXY_SQLITE3 = $(CURDIR)/debian/$(PKG_PROXY_SQLITE3)
+
+INSTALL = install
+INSTALL_FILE    = $(INSTALL) -p    -oroot -groot -m644
+INSTALL_PROGRAM = $(INSTALL) -p    -oroot -groot -m755
+INSTALL_SCRIPT  = $(INSTALL) -p    -oroot -groot -m755
+INSTALL_DIR     = $(INSTALL) -p -d -oroot -groot -m755
+
+CFLAGS = -Wall
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+    CFLAGS += -O0
+else
+    CFLAGS += -O2
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+    INSTALL_PROGRAM += -s
+endif
+
+CONFFLAGS_SERVER  = --host=$(DEB_HOST_GNU_TYPE) \
+                    --build=$(DEB_BUILD_GNU_TYPE) \
+                    --prefix=/usr \
+                    --exec-prefix=/usr \
+                    --sysconfdir=/etc/zabbix \
+                    --mandir=\$${prefix}/share/man \
+                    --infodir=\$${prefix}/share/info \
+                    --enable-server \
+                    --with-jabber \
+                    --with-ldap \
+                    --enable-ipv6 \
+                    --with-net-snmp \
+                    --with-openipmi \
+                    --with-libcurl \
+                    --with-ssh2
+
+CONFFLAGS_AGENT   = --host=$(DEB_HOST_GNU_TYPE) \
+                    --build=$(DEB_BUILD_GNU_TYPE) \
+                    --prefix=/usr \
+                    --exec-prefix=/usr \
+                    --sysconfdir=/etc/zabbix \
+                    --enable-agent \
+                    --with-openipmi \
+                    --enable-ipv6
+
+CONFFLAGS_PROXY   = --host=$(DEB_HOST_GNU_TYPE) \
+                    --build=$(DEB_BUILD_GNU_TYPE) \
+                    --prefix=/usr \
+                    --exec-prefix=/usr \
+                    --sysconfdir=/etc/zabbix \
+                    --enable-proxy \
+                    --with-libcurl --with-net-snmp --enable-ipv6 --with-openipmi --with-ssh2
+
+build:
+
+prepare:
+	if test -e /usr/share/misc/config.guess ; then \
+		if ! test -e config.guess.orig; then \
+			mv config.guess config.guess.orig ; \
+			cp --remove-destination /usr/share/misc/config.guess config.guess ; \
+		fi ; \
+	fi
+	if test -e /usr/share/misc/config.sub ; then \
+		if ! test -e config.sub.orig; then \
+			mv config.sub config.sub.orig ; \
+			cp --remove-destination /usr/share/misc/config.sub config.sub ; \
+		fi ; \
+	fi
+	# we removed -lcrypto stuff so lets re-run autotools:
+	aclocal -I m4
+	autoconf
+	autoheader
+	automake -a
+	automake
+	touch prepare-stamp
+
+build-agent: config-agent
+	dh_testdir
+	$(MAKE)
+
+config-agent: prepare config-agent-stamp
+config-agent-stamp:
+	@echo "Configuring agent"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_AGENT)
+
+build-server-mysql: config-server-mysql
+	dh_testdir
+	$(MAKE)
+
+config-server-mysql: prepare config-server-mysql-stamp
+config-server-mysql-stamp:
+	@echo "Configuring server mysql" 
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_SERVER) --with-mysql
+	touch config-server-mysql-stamp
+	exit;
+
+build-server-pgsql: config-server-pgsql
+	dh_testdir
+	$(MAKE)
+
+config-server-pgsql: prepare config-server-pgsql-stamp
+config-server-pgsql-stamp:
+	@echo "Configuring server pgsql"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_SERVER) --with-postgresql
+	touch config-server-pgsql-stamp
+
+build-server-sqlite3: config-server-sqlite3
+	dh_testdir
+	$(MAKE)
+
+config-server-sqlite3: prepare config-server-sqlite3-stamp
+config-server-sqlite3-stamp:
+	@echo "Configuring server sqlite3"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_SERVER) --with-sqlite3
+	touch config-server-sqlite3-stamp
+
+config-proxy-mysql: prepare config-proxy-mysql-stamp
+config-proxy-mysql-stamp:
+	@echo "Configuring proxy mysql"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_PROXY) --with-mysql
+	touch config-proxy-mysql-stamp
+
+build-proxy-mysql: config-proxy-mysql
+	dh_testdir
+	$(MAKE)
+
+config-proxy-pgsql: prepare config-proxy-pgsql-stamp
+config-proxy-pgsql-stamp:
+	@echo "Configuring proxy pgsql"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_PROXY) --with-postgresql
+	touch config-proxy-pgsql-stamp
+
+build-proxy-pgsql: config-proxy-pgsql
+	dh_testdir
+	$(MAKE)
+
+config-proxy-sqlite3: prepare config-proxy-sqlite3-stamp
+config-proxy-sqlite3-stamp:
+	@echo "Configuring proxy sqlite3"
+	dh_testdir
+	rm -f config-*-stamp
+	./configure $(CONFFLAGS_PROXY) --with-sqlite3
+	touch config-proxy-sqlite3-stamp
+
+build-proxy-sqlite3: config-proxy-sqlite3
+	dh_testdir
+	$(MAKE)
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	rm -f config-*-stamp
+	rm -f install-*-stamp
+	rm -f config.log
+	[ ! -f Makefile ] || $(MAKE) distclean
+	[ ! -f src/zabbix_agent/Makefile ] || $(MAKE) -C src/zabbix_agent/ clean
+	[ ! -f src/zabbix_get/Makefile ] || $(MAKE) -C src/zabbix_get/ clean
+	[ ! -f src/zabbix_sender/Makefile ] || $(MAKE) -C src/zabbix_sender/ clean
+	[ ! -f src/zabbix_proxy/Makefile ] || $(MAKE) -C src/zabbix_proxy/ clean
+	debconf-updatepo
+	if test -e config.guess.orig ; then \
+		mv config.guess.orig config.guess ; \
+	fi ; 
+	if test -e config.sub.orig ; then \
+		mv config.sub.orig config.sub ; \
+	fi ; \
+	dh_clean
+
+install: install-indep install-agent install-server-mysql install-server-pgsql install-server-sqlite3 install-proxy-mysql install-proxy-pgsql install-proxy-sqlite3
+
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_installdirs -i
+	dh_install -i
+	$(INSTALL_DIR) $(TMP_FRONTEND)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_FRONTEND)/usr/share/zabbix/
+	$(INSTALL_DIR) $(TMP_FRONTEND)/usr/share/doc/zabbix-frontend-php/
+	cp -a frontends/php/* $(TMP_FRONTEND)/usr/share/zabbix/
+	# fonts come from the respective Debian packages.
+	# they get linked later with dh_link.
+	rm -r $(TMP_FRONTEND)/usr/share/zabbix/fonts/DejaVuSans.ttf
+	rm -f $(TMP_FRONTEND)/usr/share/zabbix/conf/COPYING
+	# disable installation frontend install
+	mv $(TMP_FRONTEND)/usr/share/zabbix/setup.php $(TMP_FRONTEND)/usr/share/zabbix/setup.php.disabled
+	# remove executable permissions on PNG file
+	find $(TMP_FRONTEND) -type f -name '*.png' -print0 | xargs -0r chmod a-x
+	# link config file to /etc/zabbix/..
+	dh_link -pzabbix-frontend-php etc/zabbix/dbconfig.php usr/share/zabbix/conf/zabbix.conf.php
+	$(INSTALL_FILE) debian/templates/dbconfig.php.in $(TMP_FRONTEND)/usr/share/doc/zabbix-frontend-php/dbconfig.php
+	$(INSTALL_FILE) debian/conf/apache.conf $(TMP_FRONTEND)/etc/zabbix/apache.conf
+
+install-agent: install-agent-stamp
+install-agent-stamp: build-agent
+	echo ""
+	echo $(PKG_CLIENT)
+	$(INSTALL_DIR) $(TMP_CLIENT)
+	$(INSTALL_DIR) $(TMP_CLIENT)/usr/bin
+	$(INSTALL_DIR) $(TMP_CLIENT)/usr/sbin
+	$(INSTALL_DIR) $(TMP_CLIENT)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_CLIENT)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_CLIENT)/etc/init/
+	$(INSTALL_DIR) $(TMP_CLIENT)/usr/share/zabbix-agent/
+	$(INSTALL_DIR) $(TMP_CLIENT)/DEBIAN
+	$(INSTALL_PROGRAM) src/zabbix_agent/zabbix_agentd  $(TMP_CLIENT)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_sender/zabbix_sender $(TMP_CLIENT)/usr/bin
+	$(INSTALL_DIR) $(TMP_CLIENT)/var/log/zabbix-agent/
+	chmod 750 $(TMP_CLIENT)/var/log/zabbix-agent/
+	$(INSTALL_FILE) debian/templates/zabbix_agentd.conf.in $(TMP_CLIENT)/usr/share/zabbix-agent/zabbix_agentd.conf
+	$(INSTALL_FILE) debian/zabbix-agent.logrotate $(TMP_CLIENT)/etc/logrotate.d/zabbix-agent
+
+install-server-mysql: install-server-mysql-stamp
+install-server-mysql-stamp: build-server-mysql
+	echo ""
+	echo $(PKG_SERVER_MYSQL)
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/bin
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/sbin
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/etc/zabbix/alertscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/etc/zabbix/externalscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/etc/init/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/var/log/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/install/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/upgrade/
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/upgrade/1.6
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/upgrade/1.8
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/upgrade/2.0
+	$(INSTALL_DIR) $(TMP_SERVER_MYSQL)/usr/share/doc/zabbix-server/
+	chmod 750 $(TMP_SERVER_MYSQL)/var/log/zabbix-server/
+	$(INSTALL_PROGRAM) src/zabbix_server/zabbix_server $(TMP_SERVER_MYSQL)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_SERVER_MYSQL)/usr/bin
+	$(INSTALL_FILE) debian/zabbix-server-mysql.logrotate $(TMP_SERVER_MYSQL)/etc/logrotate.d/zabbix-server-mysql
+	$(INSTALL_FILE) debian/templates/zabbix_server.conf.in $(TMP_SERVER_MYSQL)/usr/share/zabbix-server/zabbix_server.conf
+	# install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/mysql/schema.sql $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/install/mysql
+	( cat database/mysql/images.sql ; cat database/mysql/data.sql ) >> $(TMP_SERVER_MYSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_MYSQL)/install/mysql
+	dh_installinit -p $(PKG_SERVER_MYSQL) --name zabbix-server
+	dh_install -a
+	touch install-server-mysql-stamp
+
+install-server-pgsql: install-server-pgsql-stamp
+install-server-pgsql-stamp: build-server-pgsql
+	echo ""
+	echo $(PKG_SERVER_PGSQL)
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/bin
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/sbin
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/etc/zabbix/alertscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/etc/zabbix/externalscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/etc/init/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/share/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/var/log/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/upgrade/pgsql/
+	$(INSTALL_DIR) $(TMP_SERVER_PGSQL)/usr/share/doc/zabbix-server-pgsql/
+	chmod 750 $(TMP_SERVER_PGSQL)/var/log/zabbix-server/
+	$(INSTALL_PROGRAM) src/zabbix_server/zabbix_server $(TMP_SERVER_PGSQL)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_SERVER_PGSQL)/usr/bin
+	$(INSTALL_FILE) debian/zabbix-server-mysql.logrotate $(TMP_SERVER_PGSQL)/etc/logrotate.d/zabbix-server-pgsql
+	$(INSTALL_FILE) debian/templates/zabbix_server.conf.in $(TMP_SERVER_PGSQL)/usr/share/zabbix-server/zabbix_server.conf
+	#install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/postgresql/schema.sql $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/pgsql
+	( cat database/mysql/images.sql ; cat database/postgresql/data.sql ) >> $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/pgsql
+	dh_installinit -p $(PKG_SERVER_PGSQL) --name zabbix-server
+	dh_install -a
+	touch install-server-pgsql-stamp
+
+install-server-sqlite3: install-server-sqlite3-stamp
+install-server-sqlite3-stamp: build-server-sqlite3
+	echo ""
+	echo $(PKG_SERVER_SQLITE3)
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/bin
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/sbin
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/etc/zabbix/alertscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/etc/zabbix/externalscripts/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/etc/init/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/share/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/var/log/zabbix-server/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_SERVER_SQLITE3)/install/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_SERVER_SQLITE3)/upgrade/sqlite3/
+	$(INSTALL_DIR) $(TMP_SERVER_SQLITE3)/usr/share/doc/zabbix-server/
+	chmod 750 $(TMP_SERVER_SQLITE3)/var/log/zabbix-server/
+	$(INSTALL_PROGRAM) src/zabbix_server/zabbix_server $(TMP_SERVER_SQLITE3)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_SERVER_SQLITE3)/usr/bin
+	$(INSTALL_FILE) debian/zabbix-server-mysql.logrotate $(TMP_SERVER_SQLITE3)/etc/logrotate.d/zabbix-server-sqlite3
+	$(INSTALL_FILE) debian/templates/zabbix_server_sqlite3.conf.in $(TMP_SERVER_SQLITE3)/usr/share/zabbix-server/zabbix_server.conf
+	#install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/sqlite3/schema.sql $(TMP_SERVER_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_SERVER_SQLITE3)/install/sqlite3
+	( cat database/sqlite3/images.sql ; cat database/sqlite3/data.sql ) >> $(TMP_SERVER_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_SERVER_SQLITE3)/install/sqlite3
+	dh_installinit -p $(PKG_SERVER_SQLITE3) --name zabbix-server
+	dh_install -a
+	touch install-server-sqlite3-stamp
+
+install-proxy-mysql: install-proxy-mysql-stamp
+install-proxy-mysql-stamp: build-proxy-mysql
+	echo ""
+	echo $(PKG_PROXY_MYSQL)
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/usr/bin
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/usr/sbin
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/etc/init/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/usr/share/zabbix-proxy/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/usr/share/doc/zabbix-proxy-mysql/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_MYSQL)/install/
+	$(INSTALL_DIR) $(TMP_PROXY_MYSQL)/var/log/zabbix-proxy/
+	chmod 750 $(TMP_PROXY_MYSQL)/var/log/zabbix-proxy/
+	$(INSTALL_PROGRAM) src/zabbix_proxy/zabbix_proxy $(TMP_PROXY_MYSQL)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_PROXY_MYSQL)/usr/bin
+	#install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/mysql/schema.sql $(TMP_PROXY_MYSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_MYSQL)/install/mysql
+	( cat database/mysql/data.sql ) >> $(TMP_PROXY_MYSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_MYSQL)/install/mysql
+	$(INSTALL_FILE) debian/templates/zabbix_proxy.conf.in $(TMP_PROXY_MYSQL)/usr/share/zabbix-proxy/zabbix_proxy.conf
+	$(INSTALL_FILE) debian/zabbix-proxy-mysql.logrotate $(TMP_PROXY_MYSQL)/etc/logrotate.d/zabbix-proxy-mysql
+	dh_installinit -p $(PKG_PROXY_MYSQL) --name zabbix-proxy
+	dh_install -a
+	touch install-proxy-mysql-stamp
+
+install-proxy-pgsql: install-proxy-pgsql-stamp
+install-proxy-pgsql-stamp: build-proxy-pgsql
+	echo ""
+	echo $(PKG_PROXY_PGSQL)
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/usr/bin
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/usr/sbin
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/etc/init/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/usr/share/zabbix-proxy/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/usr/share/doc/zabbix-proxy-pgsql/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_PGSQL)/install/
+	$(INSTALL_DIR) $(TMP_PROXY_PGSQL)/var/log/zabbix-proxy/
+	chmod 750 $(TMP_PROXY_PGSQL)/var/log/zabbix-proxy/
+	$(INSTALL_PROGRAM) src/zabbix_proxy/zabbix_proxy $(TMP_PROXY_PGSQL)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_PROXY_PGSQL)/usr/bin
+	$(INSTALL_FILE) debian/templates/zabbix_proxy.conf.in $(TMP_PROXY_PGSQL)/usr/share/zabbix-proxy/zabbix_proxy.conf
+	$(INSTALL_FILE) debian/zabbix-proxy-mysql.logrotate $(TMP_PROXY_PGSQL)/etc/logrotate.d/zabbix-proxy-pgsql
+	# install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/postgresql/schema.sql $(TMP_PROXY_PGSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_PGSQL)/install/pgsql
+	( cat database/postgresql/data.sql ) >> $(TMP_PROXY_PGSQL)/usr/share/dbconfig-common/data/$(PKG_PROXY_PGSQL)/install/pgsql
+	dh_installinit -p $(PKG_PROXY_PGSQL) --name zabbix-proxy
+	dh_install -a
+	touch install-proxy-pgsql-stamp
+
+install-proxy-sqlite3: install-proxy-sqlite3-stamp
+install-proxy-sqlite3-stamp: build-proxy-sqlite3
+	echo ""
+	echo $(PKG_PROXY_SQLITE3)
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/usr/bin
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/usr/sbin
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/etc/zabbix/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/etc/logrotate.d/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/etc/init/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/usr/share/zabbix-proxy/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/usr/share/doc/zabbix-proxy-sqlite3/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_PROXY_SQLITE3)/install/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/var/log/zabbix-proxy/
+	$(INSTALL_DIR) $(TMP_PROXY_SQLITE3)/var/lib/zabbix/
+	chmod 750 $(TMP_PROXY_SQLITE3)/var/log/zabbix-proxy/
+	$(INSTALL_PROGRAM) src/zabbix_proxy/zabbix_proxy $(TMP_PROXY_SQLITE3)/usr/sbin
+	$(INSTALL_PROGRAM) src/zabbix_get/zabbix_get $(TMP_PROXY_SQLITE3)/usr/bin
+	$(INSTALL_FILE) debian/templates/zabbix_proxy_sqlite3.conf.in $(TMP_PROXY_SQLITE3)/usr/share/zabbix-proxy/zabbix_proxy.conf
+	$(INSTALL_FILE) debian/zabbix-proxy-mysql.logrotate $(TMP_PROXY_SQLITE3)/etc/logrotate.d/zabbix-proxy-sqlite3
+	# install schema + data sql files for dbc_config
+	$(INSTALL_FILE) database/sqlite3/schema.sql $(TMP_PROXY_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_PROXY_SQLITE3)/install/sqlite3
+	( cat database/sqlite3/data.sql )>> $(TMP_PROXY_SQLITE3)/usr/share/dbconfig-common/data/$(PKG_PROXY_SQLITE3)/install/sqlite3
+	dh_installinit -p $(PKG_PROXY_SQLITE3) --name zabbix-proxy
+	dh_install -a
+	touch install-proxy-sqlite3-stamp
+
+# Build architecture-independent files here.
+binary-indep: install-indep
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog -i
+	dh_installdocs -i
+	dh_installdebconf -i
+	dh_installinit -i
+	dh_installman -i
+	dh_installexamples -i
+	dh_link -i
+	dh_strip -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_makeshlibs -i
+	dh_installdeb -i
+	dh_shlibdeps -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+# Build architecture-dependent files here.
+binary-arch: binary-arch-agent binary-arch-server-mysql binary-arch-server-pgsql binary-arch-server-sqlite3 binary-arch-proxy-mysql binary-arch-proxy-pgsql binary-arch-proxy-sqlite3
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs ChangeLog -a
+	dh_installdocs -a
+	dh_installdebconf -a
+	dh_installinit -a
+	dh_installman -a
+	dh_installexamples -a
+	dh_link -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_makeshlibs -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+build-arch: build
+build-indep: build
+
+binary-arch-server-mysql: build-server-mysql install-server-mysql
+
+binary-arch-server-pgsql: build-server-pgsql install-server-pgsql
+
+binary-arch-server-sqlite3: build-server-sqlite3 install-server-sqlite3
+
+binary-arch-agent: build-agent install-agent
+
+binary-arch-proxy-mysql: build-proxy-mysql install-proxy-mysql
+
+binary-arch-proxy-pgsql: build-proxy-pgsql install-proxy-pgsql
+
+binary-arch-proxy-sqlite3: build-proxy-sqlite3 install-proxy-sqlite3
+
+binary: binary-arch binary-indep
+
+.PHONY: build build-server-mysql build-server-pgsql build-server-sqlite3 build-proxy-mysql build-proxy-pgsql build-proxy-sqlite3 config-server-mysql config-server-pgsql config-proxy-mysql config-proxy-pgsql config-proxy-sqlite3 clean install install-indep install-server-mysql install-server-pgsql install-server-sqlite3 install-proxy-mysql install-proxy-pgsql install-proxy-sqlite3 install-agent build-agent binary-indep binary-arch binary-arch-server-mysql binary-arch-server-pgsql binary-arch-server-sqlite3 binary-arch-agent binary-arch-proxy-mysql binary-arch-proxy-pgsql binary-arch-proxy-sqlite3 binary

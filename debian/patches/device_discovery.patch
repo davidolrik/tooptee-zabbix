@@ -1,0 +1,21 @@
+Index: zabbix-2.0.5/src/libs/zbxsysinfo/linux/diskspace.c
+===================================================================
+--- zabbix-2.0.5.orig/src/libs/zbxsysinfo/linux/diskspace.c	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/src/libs/zbxsysinfo/linux/diskspace.c	2013-02-13 14:41:09.000000000 +0100
+@@ -117,6 +117,8 @@
+ 			if (NULL == (p = strchr(line, ' ')))
+ 				continue;
+ 
++			*p = '\0';
++
+ 			mpoint = ++p;
+ 
+ 			if (NULL == (p = strchr(mpoint, ' ')))
+@@ -132,6 +134,7 @@
+ 			*p = '\0';
+ 
+ 			zbx_json_addobject(&j, NULL);
++			zbx_json_addstring(&j, "{#DEVICE}", line, ZBX_JSON_TYPE_STRING);
+ 			zbx_json_addstring(&j, "{#FSNAME}", mpoint, ZBX_JSON_TYPE_STRING);
+ 			zbx_json_addstring(&j, "{#FSTYPE}", mtype, ZBX_JSON_TYPE_STRING);
+ 			zbx_json_close(&j);

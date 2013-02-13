@@ -1,0 +1,13 @@
+Index: zabbix-2.0.5/frontends/php/styles/default.css
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/styles/default.css	2013-02-13 14:39:09.000000000 +0100
++++ zabbix-2.0.5/frontends/php/styles/default.css	2013-02-13 14:41:10.000000000 +0100
+@@ -740,7 +740,7 @@
+ 
+ /* header wide */
+ table.header_wide { width: 100%; color: #222222; border: 1px #3377AA solid; text-align: center; vertical-align: middle; background-color:#FFFFFF; margin-top: 2px; }
+-table.header_wide tr.first td.header_l { font-size: 1.3em; font-weight: bold; text-align: left; height: 24px; padding-left: 5px; color: #224488; }
++table.header_wide tr.first td.header_l { width: 30%; font-size: 1.3em; font-weight: bold; text-align: left; height: 24px; padding-left: 5px; color: #224488; }
+ table.header_wide tr.first td.header_r { background: none; text-align: right; height: 24px; padding-right: 5px; border-width: 0; }
+ table.header_wide tr.next td.header_l { background: none; text-align: left; height: 20px; padding-left: 5px; border-width: 0; }
+ table.header_wide tr.next td.header_r { background: none; text-align: right; height: 20px; padding-right: 5px; border-width: 0; }

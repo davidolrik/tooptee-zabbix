@@ -1,0 +1,16 @@
+Index: zabbix-2.0.5/frontends/php/include/menu.inc.php
+===================================================================
+--- zabbix-2.0.5.orig/frontends/php/include/menu.inc.php	2013-02-13 14:41:04.000000000 +0100
++++ zabbix-2.0.5/frontends/php/include/menu.inc.php	2013-02-13 14:41:09.000000000 +0100
+@@ -273,11 +273,6 @@
+ 			array(
+ 				'url' => 'report4.php',
+ 				'label' => _('Notifications')
+-			),
+-			array(
+-				'url' => 'setup.php',
+-				'label' => _('Installation'),
+-				'sub_pages' => array('warning.php')
+ 			)
+ 		)
+ 	),

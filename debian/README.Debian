@@ -1,0 +1,26 @@
+zabbix for Debian
+-----------------
+
+Zabbix 2.0.0 notable compile flags:
+
+CONFFLAGS_SERVER  = --enable-server \
+                    --with-jabber \
+                    --enable-ipv6 \
+                    --with-net-snmp \
+                    --with-openipmi \
+                    --with-libcurl \
+                    --with-ssh2
+
+CONFFLAGS_AGENT  = --enable-agent --with-openipmi --enable-ipv6
+
+CONFFLAGS_PROXY  = --enable-proxy --with-libcurl --with-net-snmp --enable-ipv6 --with-openipmi --with-ssh2
+
+Important:
+ - I don't do a thing with Java Gateway. If you need it, you'd have to
+   install it yourself.
+ - zabbix_agent (not zabbix_agentd) is not available.
+ - You have to manually fill-in database name/path in configuration files
+   of packages built with sqlite3 support. I haven't been able to figure out a
+   sane way to automate this with dbc.
+
+ -- Alexander Rudakov <piercemind@gmail.com>  Tue, 24 Mar 2012 14:00:00 +0400

@@ -1,3 +1,9 @@
+zabbix (1:2.0.5-4~tooptee12+1) precise; urgency=low
+
+  * Add epoch to version number to ease installation
+
+ -- Jean Baptiste Favre <ubuntu@jbfavre.org>  Wed, 20 Feb 2013 22:23:32 +0100
+
 zabbix (2.0.5-3~tooptee12+1) precise; urgency=low
 
   * Add patch to fix graph font scaling and graph title misalignment

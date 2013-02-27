@@ -303,7 +303,7 @@ install-server-pgsql-stamp: build-server-pgsql
 	$(INSTALL_FILE) debian/templates/zabbix_server.conf.in $(TMP_SERVER_PGSQL)/usr/share/zabbix-server/zabbix_server.conf
 	#install schema + data sql files for dbc_config
 	$(INSTALL_FILE) database/postgresql/schema.sql $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/pgsql
-	( cat database/mysql/images.sql ; cat database/postgresql/data.sql ) >> $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/pgsql
+	( cat database/postgresql/images.sql ; cat database/postgresql/data.sql ) >> $(TMP_SERVER_PGSQL)/usr/share/dbconfig-common/data/$(PKG_SERVER_PGSQL)/install/pgsql
 	dh_installinit -p $(PKG_SERVER_PGSQL) --name zabbix-server
 	dh_install -a
 	touch install-server-pgsql-stamp
